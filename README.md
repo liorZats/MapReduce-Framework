@@ -1,7 +1,7 @@
 MapReduce Framework for Multi-Threaded Processing
 This project implements a multi-threaded MapReduce framework in C++, designed for efficient parallel data processing. The framework allows users to define custom map and reduce functions, and execute them concurrently using multiple threads, with built-in thread safety and barrier synchronization.
 
-🔧 Key Features
+# Key features
 Custom MapReduce Implementation
 Supports user-defined map and reduce functions.
 
@@ -17,7 +17,7 @@ Handles job state tracking, thread synchronization, and balanced workload distri
 Continuous Integration with GitHub Actions
 Automatically compiles and tests the project on every push to ensure correctness and prevent regressions.
 
-📁 Project Structure
+# Project Structure
 File	Description
 Barrier.h / Barrier.cpp	Barrier implementation for thread synchronization
 MapReduceClient.h	Abstract interface for defining MapReduce jobs
@@ -47,14 +47,14 @@ Retrieve Results:
 
 Output will be stored in outputVec.
 
-✅ Testing
+## Testing
 Pre-written test cases (test1-1_thread_1_process.cpp and test4-1_thread_4_process.cpp) are provided to verify correctness and performance.
 
 Note: These test files were not written by me but can be used to evaluate thread safety and execution behavior.
 
 Tests are included in the CMake setup but are commented out by default. To enable a test, simply uncomment it in CMakeLists.txt before building.
 
-🔄 GitHub Actions Workflow
+## GitHub Actions Workflow
 This project includes a CI workflow that:
 
 Compiles the framework and test executables on every push.
