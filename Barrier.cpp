@@ -1,67 +1,57 @@
 #include "Barrier.h"
 #include <cstdlib>
 #include <cstdio>
+#include <cerrno>
+#include <cstring>
 
-/**
- * @brief Constructs a Barrier for thread synchronization.
- *
- * A Barrier ensures that multiple threads wait until all have reached the same execution point.
- *
- * @param numThreads The number of threads that must reach the barrier before they proceed.
- */
 Barrier::Barrier(int numThreads)
-        : mutex(PTHREAD_MUTEX_INITIALIZER)
-        , cv(PTHREAD_COND_INITIALIZER)
-        , count(0)
-        , numThreads(numThreads)
-{ }
+    : mutex(PTHREAD_MUTEX_INITIALIZER),
+      cv(PTHREAD_COND_INITIALIZER),
+      count(0),
+      numThreads(numThreads),
+      generation(0) {}
 
-/**
- * @brief Destroys the Barrier, cleaning up mutex and condition variable resources.
- *
- * Ensures that the mutex and condition variable are properly destroyed.
- * If destruction fails, an error message is printed, and the program exits.
- */
 Barrier::~Barrier()
 {
     if (pthread_mutex_destroy(&mutex) != 0) {
-        fprintf(stderr, "[[Barrier]] error on pthread_mutex_destroy");
+        perror("[[Barrier]] pthread_mutex_destroy failed");
         exit(1);
     }
     if (pthread_cond_destroy(&cv) != 0){
-        fprintf(stderr, "[[Barrier]] error on pthread_cond_destroy");
+        perror("[[Barrier]] pthread_cond_destroy failed");
         exit(1);
     }
 }
 
-/**
- * @brief Implements the barrier mechanism.
- *
- * Each thread that reaches this function will wait until all `numThreads` have reached it.
- * The last arriving thread will release all waiting threads.
- *
- * If any pthread function fails, an error message is printed, and the program exits.
- */
 void Barrier::barrier()
 {
     if (pthread_mutex_lock(&mutex) != 0){
-        fprintf(stderr, "[[Barrier]] error on pthread_mutex_lock");
+        perror("[[Barrier]] pthread_mutex_lock failed");
         exit(1);
     }
-    if (++count < numThreads) {
-        if (pthread_cond_wait(&cv, &mutex) != 0){
-            fprintf(stderr, "[[Barrier]] error on pthread_cond_wait");
+
+    int local_gen = generation;
+
+    if (++count == numThreads) {
+        // Last thread to arrive resets count and signals all
+        count = 0;
+        generation++;
+        if (pthread_cond_broadcast(&cv) != 0) {
+            perror("[[Barrier]] pthread_cond_broadcast failed");
             exit(1);
         }
     } else {
-        count = 0;
-        if (pthread_cond_broadcast(&cv) != 0) {
-            fprintf(stderr, "[[Barrier]] error on pthread_cond_broadcast");
-            exit(1);
+        // Wait until the generation number changes
+        while (local_gen == generation) {
+            if (pthread_cond_wait(&cv, &mutex) != 0) {
+                perror("[[Barrier]] pthread_cond_wait failed");
+                exit(1);
+            }
         }
     }
+
     if (pthread_mutex_unlock(&mutex) != 0) {
-        fprintf(stderr, "[[Barrier]] error on pthread_mutex_unlock");
+        perror("[[Barrier]] pthread_mutex_unlock failed");
         exit(1);
     }
 }
