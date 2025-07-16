@@ -1,20 +1,20 @@
 #ifndef BARRIER_H
 #define BARRIER_H
-#include <pthread.h>
 
-// a multiple use barrier
+#include <pthread.h>
 
 class Barrier {
 public:
-	Barrier(int numThreads);
-	~Barrier();
-	void barrier();
+    explicit Barrier(int numThreads);
+    ~Barrier();
+    void barrier();
 
 private:
-	pthread_mutex_t mutex;
-	pthread_cond_t cv;
-	int count;
-	int numThreads;
+    pthread_mutex_t mutex;
+    pthread_cond_t cv;
+    int count;
+    int numThreads;
+    int generation;  // Tracks barrier rounds to avoid spurious wakeups
 };
 
-#endif //BARRIER_H
+#endif // BARRIER_H
